@@ -11,7 +11,7 @@ const roomTypeSchema = new mongoose.Schema({
         required: true,
     },
     pricePerHour: {
-        type: Number,
+        type: Int32,
         required: true,
     },
 });

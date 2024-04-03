@@ -1,15 +1,12 @@
 
-const mongoose = require('mongoose');
+import mongoose from 'mongoose';
+
+mongoose.connect(process.env.MONGODB_URI)
+mongoose.Promise = global.Promise
 
 const bookingSchema = new mongoose.Schema({
-    bookingId: {
-        type: String,
-        required: true,
-        unique: true,
-    },
     roomId: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Room',
+        type: String,
         required: true,
     },
     userEmail: {
@@ -34,6 +31,9 @@ const bookingSchema = new mongoose.Schema({
         enum: ['active', 'cancelled', 'completed'],
         default: 'active',
     },
+    refundAmount: {
+        type: Number,
+    }
 }, {
     timestamps: true
 });
