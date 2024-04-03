@@ -1,17 +1,12 @@
 const mongoose = require('mongoose');
 
 const roomTypeSchema = new mongoose.Schema({
-    typeId: {
-        type: String,
-        required: true,
-        unique: true,
-    },
     typeName: {
         type: String,
         required: true,
     },
     pricePerHour: {
-        type: Int32,
+        type: Number,
         required: true,
     },
 });

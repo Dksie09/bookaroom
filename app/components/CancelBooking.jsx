@@ -1,6 +1,15 @@
 import { Button } from '@/components/ui/button';
 import React from 'react';
-import axios from 'axios'; // Make sure you've installed axios
+import axios from 'axios';
+import { CancelRounded, DeleteOutlineRounded } from '@mui/icons-material';
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
+
+
 
 function CancelBooking({ bookingID, onNewBooking, bookingStartTime, price }) {
     const handleCancel = async () => {
@@ -32,13 +41,20 @@ function CancelBooking({ bookingID, onNewBooking, bookingStartTime, price }) {
     };
 
     return (
-        <div>
-            <Button
-                className="text-red-600 border-red-600 border bg-red-500 bg-opacity-20 hover:opacity-80 hover:bg-red-500 hover:text-white"
-                onClick={handleCancel}
-            >
-                Cancel
-            </Button>
+        <div className='  hover:text-red-600'>
+            <TooltipProvider>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="outline text-red-500" size="icon" onClick={handleCancel} >
+                            <CancelRounded className=" w-full" />
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                        <p>Cancel Booking</p>
+                    </TooltipContent>
+                </Tooltip>
+            </TooltipProvider>
+            {/* <Button variant="destructive" onClick={handleCancel}>Cancel</Button> */}
         </div>
     );
 }

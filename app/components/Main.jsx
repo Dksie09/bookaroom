@@ -1,11 +1,15 @@
 "use client";
 import React, { useEffect, useState } from 'react'
+import axios from 'axios';
 import { HotelRounded } from "@mui/icons-material";
 import Booking from './Booking';
 import Table from './Table';
 
 function Main() {
     const [refreshTableKey, setRefreshTableKey] = useState(0);
+    const [roomData, setRoomData] = useState([]);
+    const [roomCostData, setRoomCostData] = useState([]);
+    const [bookings, setBookings] = useState([]);
 
     const handleNewBooking = () => {
         setRefreshTableKey(prevKey => prevKey + 1);
@@ -14,8 +18,42 @@ function Main() {
         setRefreshTableKey(prevKey => prevKey + 1);
     };
 
+    useEffect(() => {
+
+        const fetchBookings = async () => {
+            try {
+                const response = await axios.get('/api/allBookings');
+                setBookings(response.data);
+            } catch (error) {
+                console.error('Failed to fetch bookings:', error);
+            }
+        };
+
+        const fetchRooms = async () => {
+            try {
+                const response = await axios.get('/api/allRooms');
+                setRoomData(response.data);
+            } catch (error) {
+                console.error('Failed to fetch rooms:', error);
+            }
+        };
+
+        const fetchRoomCostData = async () => {
+            try {
+                const response = await axios.get('/api/roomCost');
+                setRoomCostData(response.data);
+            } catch (error) {
+                console.error('Failed to fetch rooms:', error);
+            }
+        }
+
+        fetchBookings();
+        fetchRooms();
+        fetchRoomCostData();
+    }, [refreshTableKey]);
+
     return (
-        <div className=' m-10'>
+        <div className='p-10'>
             <h3 className="mt-8 scroll-m-20 mb-10 text-2xl font-semibold tracking-tight">
                 <HotelRounded className="inline-block w-7 h-10 mb-2 mr-2" />
                 BookARoom
@@ -30,10 +68,10 @@ function Main() {
             </p>
 
             <div className='my-4'>
-                <Booking onNewBooking={handleNewBooking} />
+                <Booking onNewBooking={handleNewBooking} allBookings={bookings} roomData={roomData} roomCostData={roomCostData} />
             </div>
             <div className=''>
-                <Table refreshKey={refreshTableKey} onEditBooking={handleEditBooking} />
+                <Table refreshKey={refreshTableKey} bookings={bookings} roomData={roomData} onEditBooking={handleEditBooking} roomCostData={roomCostData} />
             </div>
         </div>
     )

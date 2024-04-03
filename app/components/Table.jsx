@@ -6,22 +6,22 @@ import axios from 'axios';
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-
+import { format } from 'date-fns';
 import {
-    Sheet,
-    SheetClose,
-    SheetContent,
-    SheetDescription,
-    SheetFooter,
-    SheetHeader,
-    SheetTitle,
-    SheetTrigger,
-} from "@/components/ui/sheet"
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
-    CaretSortIcon,
-    ChevronDownIcon,
-    DotsHorizontalIcon,
-} from "@radix-ui/react-icons";
+    Select,
+    SelectContent,
+    SelectGroup,
+    SelectItem,
+    SelectLabel,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/ui/select"
 import {
     flexRender,
     useReactTable,
@@ -32,16 +32,12 @@ import {
 } from "@tanstack/react-table";
 
 import { Checkbox } from "@/components/ui/checkbox";
+import { Calendar } from "@/components/ui/calendar"
 import {
-    DropdownMenu,
-    DropdownMenuCheckboxItem,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/components/ui/popover"
 import {
     Table,
     TableBody,
@@ -51,57 +47,107 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import EditBooking from './EditBooking';
-import { Delete } from '@mui/icons-material';
+import { CancelRounded, Delete, RemoveCircle } from '@mui/icons-material';
 import CancelBooking from './CancelBooking';
+import { CalendarIcon } from '@mui/x-date-pickers';
 
-function BookingTable({ refreshKey, onEditBooking }) {
-    const [bookings, setBookings] = useState([]);
-    const [editedData, setEditedData] = useState({
-        roomId: "",
-        userEmail: "",
-        startTime: "",
-        endTime: "",
-        price: 0,
-        status: "active"
-    });
+function BookingTable({ refreshKey, bookings, onEditBooking, roomData, roomCostData }) {
 
-    useEffect(() => {
-        const fetchBookings = async () => {
-            try {
-                const response = await axios.get('/api/allBookings');
-                console.log(response.data);
-                setBookings(response.data);
-            } catch (error) {
-                console.error('Failed to fetch bookings:', error);
-            }
-        };
+    const [roomTypeFilter, setRoomTypeFilter] = useState("none");
+    const [startDate, setStartDate] = useState(null);
+    const [endDate, setEndDate] = useState(null);
 
-        fetchBookings();
-    }, [refreshKey]);
+    const getRoomTypeById = (roomId) => {
+        const room = roomData.find((room) => room.roomNumber === roomId);
+        return room ? room.typeId : null;
+    };
+
+    const RoomTypeFilter = () => {
+        return (
+            <Select value={roomTypeFilter} onValueChange={setRoomTypeFilter}>
+                <SelectTrigger className="w-[180px] ml-2">
+                    <SelectValue placeholder="Select a type" />
+                </SelectTrigger>
+                <SelectContent>
+                    <SelectGroup>
+                        <SelectLabel>Room Type</SelectLabel>
+                        <SelectItem value="none">All</SelectItem>
+                        <SelectItem value="A">A</SelectItem>
+                        <SelectItem value="B">B</SelectItem>
+                        <SelectItem value="C">C</SelectItem>
+                    </SelectGroup>
+                </SelectContent>
+            </Select>
+        );
+    };
+
+    const filteredBookings = React.useMemo(() => {
+        return bookings.filter((booking) => {
+            const roomTypeMatch = roomTypeFilter === "none" || getRoomTypeById(booking.roomId) === roomTypeFilter;
+            const bookingStartTime = new Date(booking.startTime);
+            const isAfterStartDate = startDate ? bookingStartTime >= startDate : true;
+            const isBeforeEndDate = endDate ? bookingStartTime <= endDate : true;
+            return roomTypeMatch && isAfterStartDate && isBeforeEndDate;
+        });
+    }, [bookings, roomTypeFilter, roomData, startDate, endDate]);
+
+
+    function DatePicker({ date, setDate, label }) {
+        return (
+            <Popover>
+                <PopoverTrigger asChild>
+                    <Button variant={"outline"} className="w-2/5 justify-start text-left font-normal">
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {date ? format(date, "PPP") : <span>{label}</span>}
+                    </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar mode="single" selected={date} onSelect={setDate} initialFocus />
+                </PopoverContent>
+            </Popover>
+        );
+    }
+
+    function removeAllFilters() {
+        setEndDate(null)
+        setStartDate(null)
+        setRoomTypeFilter("none")
+    }
 
 
     const columns = React.useMemo(() => [
+        // {
+        //     id: "select",
+        //     header: ({ table }) => (
+        //         <Checkbox
+        //             checked={
+        //                 table.getIsAllPageRowsSelected() ||
+        //                 (table.getIsSomePageRowsSelected() && "indeterminate")
+        //             }
+        //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
+        //             aria-label="Select all"
+        //         />
+        //     ),
+        //     cell: ({ row }) => (
+        //         <Checkbox
+        //             checked={row.getIsSelected()}
+        //             onCheckedChange={(value) => row.toggleSelected(!!value)}
+        //             aria-label="Select row"
+        //         />
+        //     ),
+        //     enableSorting: false,
+        //     enableHiding: false,
+        // },
+
         {
-            id: "select",
-            header: ({ table }) => (
-                <Checkbox
-                    checked={
-                        table.getIsAllPageRowsSelected() ||
-                        (table.getIsSomePageRowsSelected() && "indeterminate")
-                    }
-                    onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-                    aria-label="Select all"
-                />
-            ),
-            cell: ({ row }) => (
-                <Checkbox
-                    checked={row.getIsSelected()}
-                    onCheckedChange={(value) => row.toggleSelected(!!value)}
-                    aria-label="Select row"
-                />
-            ),
-            enableSorting: false,
-            enableHiding: false,
+            accessorKey: 'status',
+            header: () => <div>Status</div>,
+            cell: ({ row }) => {
+                const status = row.getValue("status");
+                const textColor = status === "cancelled" ? "text-red-300" : "text-green-500";
+                return <div className={`capitalize ${textColor}`}>{status}</div>;
+            }
+
         },
         {
             accessorKey: 'roomId',
@@ -116,25 +162,31 @@ function BookingTable({ refreshKey, onEditBooking }) {
         {
             accessorKey: 'startTime',
             header: () => <div>Start Time</div>,
-            cell: ({ row }) => { return <div>{new Date(row.getValue("startTime")).toLocaleString()}</div> },
+            cell: ({ row }) => {
+                const startTime = new Date(row.getValue("startTime"));
+                return <div>{format(startTime, "MMM dd, yyyy HH:mm")}</div>;
+            },
         },
         {
             accessorKey: 'endTime',
             header: () => <div>End Time</div>,
-            cell: ({ row }) => { return <div>{new Date(row.getValue("endTime")).toLocaleString()}</div> },
+            cell: ({ row }) => {
+                const endTime = new Date(row.getValue("endTime"));
+                return <div>{format(endTime, "MMM dd, yyyy HH:mm")}</div>;
+            },
         },
+
         {
             accessorKey: 'price',
 
             header: () => <div>Price</div>,
             cell: ({ row }) => {
-                return row.original.status === "cancelled" ? <div>-</div> : <div>${row.getValue("price")}</div>;
+                return row.original.status === "cancelled" ? <div>-</div> :
+                    <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+                        ₹{row.getValue("price")}
+                    </code>
+                    ;
             }
-        },
-        {
-            accessorKey: 'status',
-            header: () => <div>Status</div>,
-            cell: ({ row }) => { return <div className="capitalize">{row.getValue("status")}</div> },
         },
         {
             id: "actions",
@@ -143,18 +195,12 @@ function BookingTable({ refreshKey, onEditBooking }) {
 
                 return (
                     <>
-                        {/* <Button variant="ghost" className="h-8 w-8 p-0" onClick={() => console.log(row.original)}>
-                            <span className="sr-only">Open menu</span>
-                            <DotsHorizontalIcon className="h-4 w-4" />
-                        </Button> */}
-                        {/* {console.log(row.original._id)} */}
                         <EditBooking bookingID={row.original._id} onNewBooking={onEditBooking} currentBooking={row.original} />
                     </>
                 )
             },
             enableHiding: false,
-        },
-        {
+        }, {
             id: "delete",
             cell: ({ row }) => {
                 const booking = row.original;
@@ -162,7 +208,9 @@ function BookingTable({ refreshKey, onEditBooking }) {
                 return (
                     <div>
                         {row.original.status === "cancelled" ? (
-                            <label className='text-sm font-medium text-red-500 bg-yellow-200'>Refund ₹{row.original.price}</label>
+                            // <code className="relative rounded bg-muted px-[0.3rem] py-[0.2rem] font-mono text-sm font-semibold">
+                            <p className="text-sm text-muted-foreground">Refund ₹{row.original.price}</p>
+
                         ) : (
                             <CancelBooking bookingID={row.original._id} onNewBooking={onEditBooking} currentBooking={row.original} />
                         )}
@@ -172,10 +220,13 @@ function BookingTable({ refreshKey, onEditBooking }) {
             },
             enableHiding: false,
         }
+        ,
+
+
     ], []);
 
     const table = useReactTable({
-        data: bookings,
+        data: filteredBookings,
         columns,
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
@@ -185,7 +236,7 @@ function BookingTable({ refreshKey, onEditBooking }) {
 
     return (
         <div className="w-full">
-            <div className="flex items-center py-4">
+            <div className="flex items-center py-4 flex-wrap">
                 <Input
                     placeholder="Find Room..."
                     value={table.getColumn('roomId')?.getFilterValue() ?? ''}
@@ -194,40 +245,44 @@ function BookingTable({ refreshKey, onEditBooking }) {
                     }
                     className="max-w-sm"
                 />
-                <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                        <Button variant="outline" className="ml-auto">
-                            Columns <ChevronDownIcon className="ml-2 h-4 w-4" />
-                        </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                        {table.getAllColumns().filter((column) => column.getCanHide()).map((column) => (
-                            <DropdownMenuCheckboxItem
-                                key={column.id}
-                                className="capitalize"
-                                checked={column.getIsVisible()}
-                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                            >
-                                {column.id}
-                            </DropdownMenuCheckboxItem>
-                        ))}
-                    </DropdownMenuContent>
-                </DropdownMenu>
+                <RoomTypeFilter />
+                <div className="flex items-center gap-2 py-2 ml-auto">
+                    <DatePicker date={startDate} setDate={setStartDate} label="Start date" />
+                    <DatePicker date={endDate} setDate={setEndDate} label="End date" />
+                    <TooltipProvider>
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <Button variant="outline text-red-500" size="icon" onClick={removeAllFilters} >
+                                    <CancelRounded className=" w-full" />
+                                </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p>Remove all filters</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </TooltipProvider>
+                </div>
             </div>
+
+
             <div className="rounded-md border">
                 <Table>
-                    {/* <TableHead>
+                    <TableHeader>
                         {table.getHeaderGroups().map((headerGroup) => (
                             <TableRow key={headerGroup.id}>
                                 {headerGroup.headers.map((header) => (
-                                    <TableHeader key={header.id} className="flex-grow flex-basis-0 whitespace-nowrap overflow-hidden text-overflow-ellipsis">
-                                        {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                    </TableHeader>
-
+                                    <TableHead key={header.id} colSpan={header.colSpan}>
+                                        {header.isPlaceholder
+                                            ? null
+                                            : flexRender(
+                                                header.column.columnDef.header,
+                                                header.getContext()
+                                            )}
+                                    </TableHead>
                                 ))}
                             </TableRow>
                         ))}
-                    </TableHead> */}
+                    </TableHeader>
 
                     <TableBody>
                         {table.getRowModel().rows.length > 0 ? (

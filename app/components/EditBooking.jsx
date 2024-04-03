@@ -52,6 +52,30 @@ const frameworks = [
         value: "B103",
         label: "B103",
     },
+    {
+        value: "C201",
+        label: "C201",
+    },
+    {
+        value: "C202",
+        label: "C202",
+    },
+    {
+        value: "C203",
+        label: "C203",
+    },
+    {
+        value: "C204",
+        label: "C204",
+    },
+    {
+        value: "C205",
+        label: "C205",
+    },
+    {
+        value: "C206",
+        label: "C206",
+    },
 ]
 
 
@@ -61,11 +85,36 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
     const [bookingData, setBookingData] = useState(
         currentBooking
     );
+    const [roomData, setRoomData] = useState([]);
+    const [roomCostData, setRoomCostData] = useState([]);
+
 
     useEffect(() => {
-        console.log(bookingData);
-        if (bookingData.startTime && bookingData.endTime) {
-            calculatePrice(bookingData.startTime, bookingData.endTime);
+        const fetchRooms = async () => {
+            try {
+                const response = await axios.get('/api/allRooms');
+                setRoomData(response.data);
+            } catch (error) {
+                console.error('Failed to fetch rooms:', error);
+            }
+        };
+
+        const fetchRoomCostData = async () => {
+            try {
+                const response = await axios.get('/api/roomCost');
+                setRoomCostData(response.data);
+            } catch (error) {
+                console.error('Failed to fetch rooms:', error);
+            }
+        }
+
+        fetchRooms();
+        fetchRoomCostData();
+    }, [bookingID]);
+
+    useEffect(() => {
+        if (bookingData.startTime && bookingData.endTime && bookingData.roomId) {
+            calculatePrice(bookingData.startTime, bookingData.endTime, bookingData.roomId);
         }
     }, [bookingData.startTime, bookingData.endTime, bookingData]);
 
@@ -112,28 +161,31 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
         return start >= now && start < end && start.getTime() !== end.getTime();
     };
 
-    const calculatePrice = (startTime, endTime, hourlyRate = 100) => {
+    const calculatePrice = (startTime, endTime, roomID) => {
+        const room = roomData.find(r => r.roomNumber === roomID);
+        const roomCost = roomCostData.find(rc => rc.typeName === room.typeId);
+        const hourlyRate = roomCost ? roomCost.pricePerHour : 0;
         const start = new Date(startTime);
         const end = new Date(endTime);
         const durationInHours = (end - start) / (1000 * 60 * 60);
-        const price = parseFloat((durationInHours * hourlyRate).toFixed(1));
+        const price = Math.round(durationInHours * hourlyRate);
         setPrice(price);
         return price;
     };
 
 
     const handleSubmit = async (e) => {
-        console.log(bookingID)
+        // console.log(bookingID)
         e.preventDefault();
         if (!isValidDateRange(bookingData.startTime, bookingData.endTime)) {
             console.error("Invalid date range.");
             return;
         }
 
-        console.log("current booking");
-        console.log(bookingData);
-        console.log("all bookings");
-        console.log(bookings);
+        // console.log("current booking");
+        // console.log(bookingData);
+        // console.log("all bookings");
+        // console.log(bookings);
 
         //TODO: remove entry with same id from conflict
         const hasConflict = checkBookingConflict(bookingData, bookings);
@@ -143,7 +195,7 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
             return;
         }
 
-        const totalPrice = calculatePrice(bookingData.startTime, bookingData.endTime);
+        const totalPrice = calculatePrice(bookingData.startTime, bookingData.endTime, bookingData.roomID);
 
         const submissionData = {
             ...bookingData,
@@ -175,7 +227,7 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
         <div className=''>
             <Sheet>
                 <SheetTrigger asChild>
-                    <Button className="">Edit Booking</Button>
+                    <Button className="">Edit</Button>
                 </SheetTrigger>
                 <SheetContent>
                     <SheetHeader>
@@ -196,11 +248,11 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
                                     <option value="B101">B101</option>
                                     <option value="B102">B102</option>
                                     <option value="B103">B103</option>
-                                    <option value="B103">C201</option>
-                                    <option value="B103">C202</option>
-                                    <option value="B103">C203</option>
-                                    <option value="B103">C204</option>
-                                    <option value="B103">C205</option>
+                                    <option value="C201">C201</option>
+                                    <option value="C202">C202</option>
+                                    <option value="C203">C203</option>
+                                    <option value="C204">C204</option>
+                                    <option value="C205">C205</option>
                                 </select>
                             </div>
 
