@@ -94,28 +94,32 @@ function Booking({ onNewBooking, allBookings, roomData, roomCostData }) {
             return false;
         } else {
 
-            for (const existingBooking of sameRoomData) {
-                if (existingBooking.status == "cancelled") {
-                    continue;
-                }
+            try {
+                for (const existingBooking of sameRoomData) {
+                    if (existingBooking.status == "cancelled") {
+                        continue;
+                    }
 
-                const newBookingStart = new Date(newBooking.startTime)
-                const newBookingEnd = new Date(newBooking.endTime)
-                const existingBookingStart = new Date(existingBooking.startTime)
-                const existingBookingEnd = new Date(existingBooking.endTime)
+                    const newBookingStart = new Date(newBooking.startTime)
+                    const newBookingEnd = new Date(newBooking.endTime)
+                    const existingBookingStart = new Date(existingBooking.startTime)
+                    const existingBookingEnd = new Date(existingBooking.endTime)
 
-                console.log(newBookingStart, newBookingEnd, existingBooking)
-                if (
-                    (newBookingStart >= existingBookingStart && newBookingStart <= existingBookingEnd) ||
-                    (newBookingEnd > existingBookingStart && newBookingEnd <= existingBookingEnd) ||
-                    (newBookingStart <= existingBookingStart && newBookingEnd >= existingBookingEnd)
-                ) {
-                    setIsConflict(true);
-                    return true;
+                    console.log(newBookingStart, newBookingEnd, existingBooking)
+                    if (
+                        (newBookingStart >= existingBookingStart && newBookingStart <= existingBookingEnd) ||
+                        (newBookingEnd > existingBookingStart && newBookingEnd <= existingBookingEnd) ||
+                        (newBookingStart <= existingBookingStart && newBookingEnd >= existingBookingEnd)
+                    ) {
+                        setIsConflict(true);
+                        return true;
+                    }
                 }
+                setIsConflict(false);
+                return false;
+            } catch (err) {
+                console.log(err)
             }
-            setIsConflict(false);
-            return false;
         }
     };
 

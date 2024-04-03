@@ -53,8 +53,8 @@ function Main() {
     }, [refreshTableKey]);
 
     return (
-        <div className='p-10'>
-            <h3 className="mt-8 scroll-m-20 mb-10 text-2xl font-semibold tracking-tight">
+        <div className=''>
+            <h3 className="mt-8 mb-10 text-2xl font-semibold tracking-tight">
                 <HotelRounded className="inline-block w-7 h-10 mb-2 mr-2" />
                 BookARoom
             </h3>
@@ -67,7 +67,7 @@ function Main() {
                 Our platform not only offers a solid booking management interface but also ensures your booking process is smooth and beautiful.
             </p>
 
-            <div className='my-4'>
+            <div className='mt-8'>
                 <Booking onNewBooking={handleNewBooking} allBookings={bookings} roomData={roomData} roomCostData={roomCostData} />
             </div>
             <div className=''>

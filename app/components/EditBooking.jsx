@@ -84,15 +84,18 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
     const [price, setPrice] = useState(0);
     const [bookingData, setBookingData] = useState(
         currentBooking
-    );
+    ); const [isConflict, setIsConflict] = useState(false);
+    const [isFormIncomplete, setIsFormIncomplete] = useState(false);
     const [roomData, setRoomData] = useState([]);
     const [roomCostData, setRoomCostData] = useState([]);
 
 
     useEffect(() => {
+        console.log(currentBooking)
         const fetchRooms = async () => {
             try {
                 const response = await axios.get('/api/allRooms');
+                console.log("all same room:", response.data);
                 setRoomData(response.data);
             } catch (error) {
                 console.error('Failed to fetch rooms:', error);
@@ -102,6 +105,7 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
         const fetchRoomCostData = async () => {
             try {
                 const response = await axios.get('/api/roomCost');
+                console.log("room cost:", response.data)
                 setRoomCostData(response.data);
             } catch (error) {
                 console.error('Failed to fetch rooms:', error);
@@ -115,8 +119,21 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
     useEffect(() => {
         if (bookingData.startTime && bookingData.endTime && bookingData.roomId) {
             calculatePrice(bookingData.startTime, bookingData.endTime, bookingData.roomId);
+            checkBookingConflict(bookingData);
+            if (isValidDateRange(bookingData.startTime, bookingData.endTime) == false) {
+                setIsConflict(true);
+            }
         }
-    }, [bookingData.startTime, bookingData.endTime, bookingData]);
+    }, [bookingData.startTime, bookingData.endTime, bookingData.roomId]);
+
+    useEffect(() => {
+
+        setIsFormIncomplete(false);
+        if (!bookingData.roomId || !bookingData.userEmail || !bookingData.startTime || !bookingData.endTime) {
+            setIsFormIncomplete(true);
+        }
+
+    }, [bookingData.startTime, bookingData.endTime, bookingData.roomId, bookingData.userEmail]);
 
     function toLocalDateTimeString(input) {
         if (!input) return '';
@@ -131,19 +148,19 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
 
 
     const checkBookingConflict = (newBooking, existingBookings) => {
+        return true;
+        // return existingBookings.some((booking) => {
+        //     if (booking.roomId !== newBooking.roomId || booking.status !== 'active') {
+        //         return false;
+        //     }
 
-        return existingBookings.some((booking) => {
-            if (booking.roomId !== newBooking.roomId || booking.status !== 'active') {
-                return false;
-            }
+        //     const existingStart = new Date(booking.startTime).getTime();
+        //     const existingEnd = new Date(booking.endTime).getTime();
+        //     const newStart = new Date(newBooking.startTime).getTime();
+        //     const newEnd = new Date(newBooking.endTime).getTime();
 
-            const existingStart = new Date(booking.startTime).getTime();
-            const existingEnd = new Date(booking.endTime).getTime();
-            const newStart = new Date(newBooking.startTime).getTime();
-            const newEnd = new Date(newBooking.endTime).getTime();
-
-            return (newStart < existingEnd && newStart >= existingStart) || (newEnd > existingStart && newEnd <= existingEnd) || (newStart <= existingStart && newEnd >= existingEnd);
-        });
+        //     return (newStart < existingEnd && newStart >= existingStart) || (newEnd > existingStart && newEnd <= existingEnd) || (newStart <= existingStart && newEnd >= existingEnd);
+        // });
     };
 
     const handleChange = (e) => {
@@ -182,11 +199,6 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
             return;
         }
 
-        // console.log("current booking");
-        // console.log(bookingData);
-        // console.log("all bookings");
-        // console.log(bookings);
-
         //TODO: remove entry with same id from conflict
         const hasConflict = checkBookingConflict(bookingData, bookings);
 
@@ -221,6 +233,15 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
             status: "active"
         });
     }
+
+    useEffect(() => {
+
+        setIsFormIncomplete(false);
+        if (!bookingData.roomId || !bookingData.userEmail || !bookingData.startTime || !bookingData.endTime) {
+            setIsFormIncomplete(true);
+        }
+
+    }, [bookingData.startTime, bookingData.endTime, bookingData.roomId, bookingData.userEmail]);
 
 
     return (
@@ -271,17 +292,21 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
                                     <input type="datetime-local" id="endTime" name="endTime" className='mt-1 w-full text-gray-500  p-2 border border-gray-300 rounded-md' value={toLocalDateTimeString(bookingData.endTime)} onChange={handleChange} placeholder='End Time' />
                                 </div>
                             </div>
-                            <label className=' text-xs font-medium text-red-500'>Room not available for the selected dates</label>
+                            {/* <label className=' text-xs font-medium text-red-500'>Room not available for the selected dates</label> */}
                             <div className=' flex flex-col'>
                                 <label className='text-sm font-medium'>Price</label>
-                                <label className='text-3xl font-medium text-black text-center w-full'>₹{price}</label>
+                                <label className='text-3xl font-medium text-black text-center w-full'>₹{bookingData.price}</label>
                             </div>
                             <div>
                                 <textarea id="message" name="message" rows={4} className='mt-1 w-full p-2 border text-black border-gray-300 rounded-md' placeholder='Any Additional Requests?'></textarea>
                             </div>
                             <SheetClose asChild>
-                                {/* TODO: disable till valid entries */}
-                                <Button type="submit" className='w-full p-3 rounded-md hover:bg-[#FF9496]'>Save Changes</Button>
+                                {(isFormIncomplete) ? (
+                                    <Button disabled type="submit" className='w-full p-3 rounded-md hover:bg-[#FF9496]'>Add Booking</Button>
+                                ) : (
+                                    <Button type="submit" className='w-full p-3 rounded-md hover:bg-[#FF9496]'>Add Booking</Button>
+                                )}
+
                             </SheetClose>
                         </form>
                     </div>

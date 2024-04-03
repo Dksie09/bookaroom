@@ -47,9 +47,10 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import EditBooking from './EditBooking';
-import { CancelRounded, Delete, RemoveCircle } from '@mui/icons-material';
+import { CancelRounded, Delete, RemoveCircle, SwapVert, } from '@mui/icons-material';
 import CancelBooking from './CancelBooking';
 import { CalendarIcon } from '@mui/x-date-pickers';
+
 
 function BookingTable({ refreshKey, bookings, onEditBooking, roomData, roomCostData }) {
 
@@ -116,28 +117,6 @@ function BookingTable({ refreshKey, bookings, onEditBooking, roomData, roomCostD
 
 
     const columns = React.useMemo(() => [
-        // {
-        //     id: "select",
-        //     header: ({ table }) => (
-        //         <Checkbox
-        //             checked={
-        //                 table.getIsAllPageRowsSelected() ||
-        //                 (table.getIsSomePageRowsSelected() && "indeterminate")
-        //             }
-        //             onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        //             aria-label="Select all"
-        //         />
-        //     ),
-        //     cell: ({ row }) => (
-        //         <Checkbox
-        //             checked={row.getIsSelected()}
-        //             onCheckedChange={(value) => row.toggleSelected(!!value)}
-        //             aria-label="Select row"
-        //         />
-        //     ),
-        //     enableSorting: false,
-        //     enableHiding: false,
-        // },
 
         {
             accessorKey: 'status',
@@ -151,7 +130,15 @@ function BookingTable({ refreshKey, bookings, onEditBooking, roomData, roomCostD
         },
         {
             accessorKey: 'roomId',
-            header: () => <div>Room No.</div>,
+            header: ({ column }) => {
+                return (<Button
+                    variant="ghost"
+                    onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
+                >
+                    Room no.
+                    <SwapVert className="ml-2 h-4 w-4" />
+                </Button>)
+            },
             cell: ({ row }) => { return <div>{row.getValue("roomId")}</div> },
         },
         {
@@ -194,9 +181,10 @@ function BookingTable({ refreshKey, bookings, onEditBooking, roomData, roomCostD
                 const booking = row.original;
 
                 return (
-                    <>
+
+                    row.original.status === "cancelled" ? <Button disabled>Edit</Button> :
                         <EditBooking bookingID={row.original._id} onNewBooking={onEditBooking} currentBooking={row.original} />
-                    </>
+
                 )
             },
             enableHiding: false,
