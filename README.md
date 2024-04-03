@@ -14,6 +14,7 @@ Hotel Room Management Admin App for Scaler SDE Assignment
 
 - **Next.js**
 - **TailwindCSS**
+- **Shadcn**
 - **MongoDB**
 
 
