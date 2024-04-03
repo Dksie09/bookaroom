@@ -91,11 +91,9 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
 
 
     useEffect(() => {
-        console.log(currentBooking)
         const fetchRooms = async () => {
             try {
                 const response = await axios.get('/api/allRooms');
-                console.log("all same room:", response.data);
                 setRoomData(response.data);
             } catch (error) {
                 console.error('Failed to fetch rooms:', error);
@@ -105,7 +103,6 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
         const fetchRoomCostData = async () => {
             try {
                 const response = await axios.get('/api/roomCost');
-                console.log("room cost:", response.data)
                 setRoomCostData(response.data);
             } catch (error) {
                 console.error('Failed to fetch rooms:', error);
@@ -192,7 +189,6 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
 
 
     const handleSubmit = async (e) => {
-        // console.log(bookingID)
         e.preventDefault();
         if (!isValidDateRange(bookingData.startTime, bookingData.endTime)) {
             console.error("Invalid date range.");
@@ -214,10 +210,7 @@ function EditBooking({ bookingID, onNewBooking, currentBooking }) {
             price: totalPrice
         };
 
-        console.log(submissionData);
-
         const response = await axios.patch('/api/edit', { updatedBookingData: submissionData, bookingId: bookingID });
-        console.log(response);
         if (response.status === 200) {
             onNewBooking();
         } else {

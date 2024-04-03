@@ -70,11 +70,9 @@ function Booking({ onNewBooking, allBookings, roomData, roomCostData }) {
 
 
     useEffect(() => {
-        console.log(allBookings);
         const fetchSameRooms = async () => {
             try {
                 const sameRoomBookings = allBookings.filter(booking => booking.roomId === bookingData.roomId);
-                console.log(sameRoomBookings);
                 setSameRoomData(sameRoomBookings);
             } catch (error) {
                 console.error("Error fetching same room bookings:", error);
@@ -87,7 +85,6 @@ function Booking({ onNewBooking, allBookings, roomData, roomCostData }) {
     }, [bookingData.roomId]);
 
     const checkBookingConflict = (newBooking) => {
-        console.log("called")
 
         if (sameRoomData.length === 0) {
             setIsConflict(false);
@@ -105,7 +102,6 @@ function Booking({ onNewBooking, allBookings, roomData, roomCostData }) {
                     const existingBookingStart = new Date(existingBooking.startTime)
                     const existingBookingEnd = new Date(existingBooking.endTime)
 
-                    console.log(newBookingStart, newBookingEnd, existingBooking)
                     if (
                         (newBookingStart >= existingBookingStart && newBookingStart <= existingBookingEnd) ||
                         (newBookingEnd > existingBookingStart && newBookingEnd <= existingBookingEnd) ||
@@ -178,7 +174,6 @@ function Booking({ onNewBooking, allBookings, roomData, roomCostData }) {
 
         try {
             const response = await axios.post('/api/newBooking', { bookingData: submissionData });
-            console.log(response);
             if (response.data.msg === "success") {
                 console.log("Booking Successful");
                 setBookings([...bookings, submissionData]);

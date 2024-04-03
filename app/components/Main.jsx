@@ -53,7 +53,7 @@ function Main() {
     }, [refreshTableKey]);
 
     return (
-        <div className=''>
+        <div className=' px-10'>
             <h3 className="mt-8 mb-10 text-2xl font-semibold tracking-tight">
                 <HotelRounded className="inline-block w-7 h-10 mb-2 mr-2" />
                 BookARoom
